@@ -21,6 +21,7 @@ async def generate_image(prompt: str, size: str = "1024x1024") -> str:
         Exception: If the API request fails or returns a non-200 status code.
     """
     payload = {
+        "model": "dall-e-3",
         "prompt": prompt,
         "n": 1,
         "size": size
