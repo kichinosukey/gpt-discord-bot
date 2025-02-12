@@ -7,8 +7,6 @@ from discord.ext import commands
 
 from src.constants import BOT_INVITE_URL, DISCORD_BOT_TOKEN
 
-DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
 logging.basicConfig(
     format="[%(asctime)s] [%(filename)s:%(lineno)d] %(message)s", level=logging.INFO

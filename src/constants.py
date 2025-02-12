@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+DALL_E_API_ENDPOINT = os.environ["DALL_E_API_ENDPOINT"]
+DALL_E_API_KEY = os.environ["OPENAI_API_KEY"]
+
 DISCORD_BOT_TOKEN = os.environ["DISCORD_BOT_TOKEN"]
 DISCORD_CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
 
