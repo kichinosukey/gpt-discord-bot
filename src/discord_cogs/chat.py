@@ -11,7 +11,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ui import Select, View
 
-from src.constants import ACTIVATE_CHAT_THREAD_PREFIX, MAX_ASSISTANT_LIST
+from src.constants import ACTIVATE_CHAT_THREAD_PREFIX, MAX_ASSISTANT_LIST, DEFAULT_MODEL
 from src.discord_cogs._utils import (
     is_last_message_stale,
     search_assistants,
@@ -47,7 +47,10 @@ class Chat(commands.Cog):
     @app_commands.command(name="chat")
     async def chat(self, int: discord.Interaction,
             assistant_id: str = "Not selected",
-            thread_id: str = None, search: str = ''):
+            thread_id: str = None, 
+            search: str = '', 
+            model: str = None 
+):
         """Start a chat with the bot in a thread"""
         try:
             # only support creating thread in text channel
@@ -60,6 +63,9 @@ class Chat(commands.Cog):
 
             user = int.user
             logger.info(f"Chat command by {user}")
+
+            # model オプションが指定されていなければ DEFAULT_MODEL を利用
+            selected_model = model if model is not None else DEFAULT_MODEL
 
             # Create embed
             embed = discord.Embed(
@@ -78,6 +84,7 @@ class Chat(commands.Cog):
                 name = assistant.name
             embed.add_field(name="thread_id", value=thread_id)
             embed.add_field(name="assistant_id", value=assistant_id)
+            embed.add_field(name="model", value=selected_model)
             embed.add_field(name="name", value=name)
             await int.response.send_message(embed=embed)
 
@@ -161,6 +168,7 @@ class Chat(commands.Cog):
                 first_message = await thread.parent.fetch_message(thread.id)
                 openai_thread_id = first_message.embeds[0].fields[0].value
                 openai_assistant_id = first_message.embeds[0].fields[1].value
+                openai_model = first_message.embeds[0].fields[2].value
                 # TODO: appropriate error handling
                 if openai_assistant_id == "Not selected":
                     await thread.send(
@@ -213,6 +221,7 @@ class Chat(commands.Cog):
                 response_data = await generate_response(
                     thread_id=openai_thread_id,
                     assistant_id=openai_assistant_id,
+                    model=openai_model,
                     new_message=MessageCreate.from_discord_message(
                         thread_id=openai_thread_id,
                         author_name=message.author.display_name,
@@ -255,9 +264,10 @@ class SelectView(View):
         # modify the starter embed in the thread
         starter_message = await self.thread.parent.fetch_message(self.thread.id)
         embed = starter_message.embeds[0]
-        embed.set_field_at(-2, name="assistant_id", value=selected)
+        # embed のフィールド順序は: 0: thread_id, 1: assistant_id, 2: model, 3: name
+        embed.set_field_at(1, name="assistant_id", value=selected)
         assistant = await get_assistant(selected)
-        embed.set_field_at(-1, name="name", value=assistant.name)
+        embed.set_field_at(3, name="name", value=assistant.name)
         await starter_message.edit(embed=embed)
 
 class FunctionSelectView(View):

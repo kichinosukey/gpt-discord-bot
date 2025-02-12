@@ -23,9 +23,9 @@ async def add_user_message_to_thread(cfg: MessageCreate) -> Message:
     return Message.from_api_output(response)
 
 
-async def generate_assistant_message_in_thread(thread_id: str, assistant_id: str) -> ResponseData:
+async def generate_assistant_message_in_thread(thread_id: str, assistant_id: str, model: str) -> ResponseData:
     try:
-        run = await client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant_id)
+        run = await client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant_id, model=model)
         # TODO: check the run status periodically
         while run.status != "completed":
             if run.status == "cancelled":  # ending states (not error)
@@ -87,11 +87,11 @@ async def generate_assistant_message_in_thread(thread_id: str, assistant_id: str
 
 
 async def generate_response(
-    thread_id: str, assistant_id: str, new_message: MessageCreate
+    thread_id: str, assistant_id: str, new_message: MessageCreate, model: str
 ) -> ResponseData:
     assert thread_id == new_message.thread_id
     _ = await add_user_message_to_thread(new_message)
     response_data = await generate_assistant_message_in_thread(
-        thread_id=thread_id, assistant_id=assistant_id
+        thread_id=thread_id, assistant_id=assistant_id, model=model
     )
     return response_data
